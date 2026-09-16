@@ -6,20 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ведомость для HR Ак Барс</title>
 
-    <!-- Классические газетные шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
-        /* ============================================================
-           ПАЛИТРА (газетная)
-           Бумага:   #f4efe4
-           Чернила:  #1a1a1a
-           Акцент:   #0d4d3c (тёмно-зелёный Ак Барс)
-           Приглушённый: #6b6256
-           ============================================================ */
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
@@ -30,7 +21,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Слегка "шершавая" бумага */
         body {
             background-image:
                 radial-gradient(circle at 20% 30%, rgba(0,0,0,0.02) 0%, transparent 50%),
@@ -49,7 +39,6 @@
             position: relative;
         }
 
-        /* Тонкая двойная рамка вокруг всей полосы */
         .newspaper::before {
             content: "";
             position: absolute;
@@ -57,10 +46,6 @@
             border: 1px solid #1a1a1a;
             pointer-events: none;
         }
-
-        /* ============================================================
-           ШАПКА (masthead)
-           ============================================================ */
 
         .masthead {
             text-align: center;
@@ -127,10 +112,6 @@
             letter-spacing: 3px;
         }
 
-        /* ============================================================
-           СЕТКА ГАЗЕТЫ
-           ============================================================ */
-
         .news-grid {
             column-count: 3;
             column-gap: 34px;
@@ -151,10 +132,6 @@
             .masthead .bottom-line { flex-direction: column; gap: 6px; }
         }
 
-        /* ============================================================
-           КАРТОЧКА СТАТЬИ
-           ============================================================ */
-
         .article {
             break-inside: avoid;
             margin-bottom: 26px;
@@ -163,7 +140,6 @@
         }
         .article:last-child { border-bottom: none; }
 
-        /* Первая статья — крупнее */
         .article.lead h3 {
             font-size: 1.55rem;
             line-height: 1.2;
@@ -206,9 +182,7 @@
             color: #6b6256;
             margin-bottom: 10px;
         }
-        .article .source::before {
-            content: "— ";
-        }
+        .article .source::before { content: "— "; }
 
         .article .summary {
             font-size: 0.95rem;
@@ -217,7 +191,6 @@
             color: #2a2a2a;
         }
 
-        /* Буквица у ведущей статьи */
         .article.lead .summary::first-letter {
             font-family: 'Playfair Display', serif;
             font-weight: 900;
@@ -228,9 +201,13 @@
             color: #0d4d3c;
         }
 
-        /* ============================================================
-           ПОДВАЛ
-           ============================================================ */
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            font-style: italic;
+            color: #6b6256;
+            font-size: 1.1rem;
+        }
 
         .footer {
             margin-top: 42px;
@@ -256,7 +233,6 @@
 <body>
     <div class="newspaper">
 
-        <!-- ШАПКА -->
         <header class="masthead">
             <div class="top-line">
                 <span>Корпоративное издание</span>
@@ -274,96 +250,96 @@
             </div>
         </header>
 
-        <!-- НОВОСТИ -->
+        
         <div class="news-grid">
             
             <article class="article lead">
-                <span class="category">Россия</span>
-                <h3><a href="https://www.cnews.ru/news/line/2026-09-16_vse_vidy_navigatsii_v_yandeks" target="_blank" rel="noopener">Все виды навигации в «Яндекс Картах» теперь доступны без интернета</a></h3>
-                <div class="source">CNews</div>
-                <p class="summary">Построить маршрут на общественном транспорте в «Яндекс Картах» теперь можно без подключения к интернету. Пользователи...</p>
-            </article>
-            
-            <article class="article ">
-                <span class="category">Россия</span>
-                <h3><a href="https://www.cnews.ru/news/line/2026-09-16_mts_polnostyu_pokryla_svyazyu" target="_blank" rel="noopener">МТС полностью покрыла связью Мстихино</a></h3>
-                <div class="source">CNews</div>
-                <p class="summary">МТС запустила новую базовую станцию в деревне Мстихино, расположенной в 10 километрах от Калуги. Благодаря установке...</p>
-            </article>
-            
-            <article class="article ">
-                <span class="category">Россия</span>
-                <h3><a href="https://www.cnews.ru/news/line/2026-09-16_dve_osennih_premery_onyx_boox" target="_blank" rel="noopener">Две осенних премьеры Onyx Boox: крупноформатный цветной ридер Note Air 6 C и суперкомпактная модель Palma 3</a></h3>
-                <div class="source">CNews</div>
-                <p class="summary">Onyx Boox представила сразу две интересные новинки: крупноформатный ридер с цветным 10,3-дюймовым экраном и высокопроизводительной...</p>
-            </article>
-            
-            <article class="article ">
-                <span class="category">Россия</span>
-                <h3><a href="https://www.cnews.ru/news/line/2026-09-16_vpervye_predstavlena_ustanovka" target="_blank" rel="noopener">Впервые представлена установка погружного линейного двигателя для малодебитных скважин</a></h3>
-                <div class="source">CNews</div>
-                <p class="summary">Впервые представлена установка погружного линейного двигателя (УПЛД) разработки ООО «Ойл Автоматика». Решение...</p>
-            </article>
-            
-            <article class="article ">
-                <span class="category">Россия</span>
-                <h3><a href="https://www.cnews.ru/news/top/2026-09-16_microsoft_na_dneee_programmam" target="_blank" rel="noopener">Редактор MS Word после обновления стал внезапно закрываться с ошибкой и уничтожать данные. Решения проблемы нет</a></h3>
-                <div class="source">CNews</div>
-                <p class="summary">Word, фирменный текстовый редактор Microsoft, может аварийно завершать работу просто по факту наличия на ПК сторонних программ для работы с шаблонами документов. Всему виной очередной апдейт Microsoft – сторонние утилиты совершенно ни при чем. Корпорация в курсе проблемы, но решения у нее нет.</p>
+                <span class="category">Мир</span>
+                <h3><a href="https://hr.economictimes.indiatimes.com/news/trends/employee-experience/the-new-employee-experience-starts-with-the-manager/134276824" target="_blank" rel="noopener">The new employee experience starts with the manager</a></h3>
+                <div class="source">ETHRWorld — HR Tech</div>
+                <p class="summary">As managers moved beyond assigning work and monitoring execution to coaching, developing talent, enabling autonomy and supporting employees through change, their everyday decisions increasingly determined how those promises were experienced. That made the manager more than a people leader. Was the new manager becoming the delivery layer of employee experience? To address the next question in ETHRWorld&#039;s…</p>
             </article>
             
             <article class="article ">
                 <span class="category">Мир</span>
-                <h3><a href="https://hr.economictimes.indiatimes.com/news/trends/employee-experience/the-new-employee-experience-starts-with-the-manager/134276824" target="_blank" rel="noopener">The new employee experience starts with the manager</a></h3>
-                <div class="source">ETHRWorld</div>
-                <p class="summary">As managers moved beyond assigning work and monitoring execution to coaching, developing talent, enabling autonomy and supporting employees through change, their everyday decisions increasingly determined how those promises were experienced. That made the manager more than a people leader. Was the new manager becoming…</p>
+                <h3><a href="https://hr.economictimes.indiatimes.com/news/workplace-4-0/talent-management/the-rise-of-an-fde-signals-a-new-era-for-engineering-talent/134276282" target="_blank" rel="noopener">The rise of an FDE signals a new era for engineering talent</a></h3>
+                <div class="source">ETHRWorld — Recruitment</div>
+                <p class="summary">There is a new name for this breed of engineers – Forward Deployed Engineer (FDE). An FDE is embedded with a client to build the system inside their environment. The model, data pipeline, evaluation layer and the guardrails stays only until the client&#039;s own team can run it without them. A good FDE is designed to make their own presence unnecessary inside the organisation.</p>
             </article>
             
             <article class="article ">
                 <span class="category">Мир</span>
                 <h3><a href="https://hr.economictimes.indiatimes.com/news/trends/leadership/the-new-manager-gap-expectations-vs-enablement/134269085" target="_blank" rel="noopener">The new manager gap: Expectations vs enablement</a></h3>
-                <div class="source">ETHRWorld</div>
-                <p class="summary">While the expectations around the manager role are expanding, the day-to-day realities of managing people may not be changing at the same pace. Once managers are in the role, why are they struggling to do what organisations expect of them? As a part of ETHRWorld’s September theme, the story tries to examine what…</p>
+                <div class="source">ETHRWorld — HR Tech</div>
+                <p class="summary">While the expectations around the manager role are expanding, the day-to-day realities of managing people may not be changing at the same pace. Once managers are in the role, why are they struggling to do what organisations expect of them? As a part of ETHRWorld’s September theme, the story tries to examine what exactly is holding managers back. Is it a capability gap, a capacity gap or the way the role itself is…</p>
             </article>
             
             <article class="article ">
                 <span class="category">Россия</span>
                 <h3><a href="https://hr-portal.ru/story/effektivnoe-vzaimodeystvie-s-personalom-kak-dobitsya-vzaimnosti" target="_blank" rel="noopener">Эффективное взаимодействие с персоналом: как добиться взаимности?</a></h3>
                 <div class="source">HR-Portal</div>
-                <p class="summary">Под организацией эффективного взаимодействия с персоналом можно понимать множество разных моментов: от формирования бизнес-процессов (взаимодействие между людьми зависит от того, каким образом выстроены технологические процедуры и того, какие роли играют те, кто в них задействован) до вопросов эффективной коммуникации…</p>
+                <p class="summary">Под организацией эффективного взаимодействия с персоналом можно понимать множество разных моментов: от формирования бизнес-процессов (взаимодействие между людьми зависит от того, каким образом выстроены технологические процедуры и того, какие роли играют те, кто в них задействован) до вопросов эффективной коммуникации (передачи информации от руководителя к подчиненному и обратно). Настоящая статья посвящена анализу…</p>
             </article>
             
             <article class="article ">
                 <span class="category">Россия</span>
                 <h3><a href="https://hr-portal.ru/story/11-neobychnyh-voprosov-dlya-sobesedovaniya" target="_blank" rel="noopener">11 необычных вопросов для собеседования</a></h3>
                 <div class="source">HR-Portal</div>
-                <p class="summary">Представители этих компаний думают, что нетипичные вопросы могут помочь вам найти лучших сотрудников.Каждый работодатель стремится нанять лучших специалистов. Многие фокусируются на том, как соискатели ведут себя на собеседовании, и они правы. Если задать правильные вопросы, можно многое узнать о личностных и…</p>
+                <p class="summary">Представители этих компаний думают, что нетипичные вопросы могут помочь вам найти лучших сотрудников.Каждый работодатель стремится нанять лучших специалистов. Многие фокусируются на том, как соискатели ведут себя на собеседовании, и они правы. Если задать правильные вопросы, можно многое узнать о личностных и профессиональных качествах кандидатов. Вопросы, представленные ниже, далеки от стандартных, вроде «Каким вы…</p>
             </article>
             
             <article class="article ">
                 <span class="category">Россия</span>
                 <h3><a href="https://hr-portal.ru/story/kak-poblagodarit-sotrudnikov-pri-pomoshchi-vosmi-slov" target="_blank" rel="noopener">Как поблагодарить сотрудников при помощи восьми слов</a></h3>
                 <div class="source">HR-Portal</div>
-                <p class="summary">Искренняя высокая оценка имеет большое значение. Вот руководство, как можно поблагодарить любого человека.На днях я должен был отметить в письменной форме работу 30 человек. Это задание, в свою очередь, заставило меня задуматься о том, какое влияние оказывает искреннее признание вклада работника. Этот проявление…</p>
+                <p class="summary">Искренняя высокая оценка имеет большое значение. Вот руководство, как можно поблагодарить любого человека.На днях я должен был отметить в письменной форме работу 30 человек. Это задание, в свою очередь, заставило меня задуматься о том, какое влияние оказывает искреннее признание вклада работника. Этот проявление вашего внимания к людям. Вы заботитесь о своем персонале. Люди чувствуют, что их ценят. И, как отмечает…</p>
             </article>
             
             <article class="article ">
                 <span class="category">Мир</span>
-                <h3><a href="https://hr.economictimes.indiatimes.com/news/trends/ai-in-hr/large-companies-face-bigger-ai-job-risks-nandan-nilekani-at-gff-2026/134115119" target="_blank" rel="noopener">Large companies face bigger AI job risks: Nandan Nilekani at GFF 2026</a></h3>
-                <div class="source">ETHRWorld</div>
-                <p class="summary">Speaking at Global Fintech Fest 2026, Infosys co-founder Nandan Nilekani said India should drive job creation through millions of small businesses, where work is less structured and harder to automate.</p>
+                <h3><a href="https://hr.economictimes.indiatimes.com/news/workplace-4-0/talent-management/flipkart-creates-2-5-lakh-festive-jobs-60-in-last-mile-delivery/134267433" target="_blank" rel="noopener">Flipkart creates 2.5 lakh festive jobs, 60% in last-mile delivery</a></h3>
+                <div class="source">ETHRWorld — Recruitment</div>
+                <p class="summary">The company said it is adding nearly 1.4 lakh last-mile employment opportunities and has opened more than 900 new festive delivery hubs across the country ahead of its festive sales.</p>
             </article>
             
             <article class="article ">
-                <span class="category">Россия</span>
-                <h3><a href="https://hr-portal.ru/story/10-slov-kotorye-vy-ne-dolzhny-proiznosit-vo-vremya-sobesedovaniya" target="_blank" rel="noopener">10 слов, которые вы не должны произносить во время собеседования</a></h3>
-                <div class="source">HR-Portal</div>
-                <p class="summary">Вы уже много слышали о том, как нужно готовиться к интервью: изучать вопросы, которые вам может задать собеседник, отрепетировать ответы на них, продумать свои собственные вопросы и т.д. А как насчет того, что вам не следует говорить? Ниже я составил список слов, которые лучше не произносить во время интервью, так как…</p>
+                <span class="category">Мир</span>
+                <h3><a href="https://hr.economictimes.indiatimes.com/news/workplace-4-0/diversity-and-inclusion/more-women-join-workforce-in-delhi-but-gender-gap-persists/134250327" target="_blank" rel="noopener">More women join workforce in Delhi, but gender gap persists</a></h3>
+                <div class="source">ETHRWorld — Recruitment</div>
+                <p class="summary">The city’s LFPR stood at 11.2% in 2017-18 and rose to 13.7% in 2018-19 before beginning to decline. It fell to 12.8% in 2019-20, 10.7% in 2020-21 and 9.4% in 2021-22, the lowest level in the seven-year series. The turnaround began in 2022-23, when the rate rose to 11.3%, followed by a sharp increase to 14.5% in 2023-24.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://hr.economictimes.indiatimes.com/news/workplace-4-0/diversity-and-inclusion/accenture-to-pay-25-million-to-settle-us-government-allegations-over-dei/134250307" target="_blank" rel="noopener">Accenture to pay $25 million to settle US government allegations over DEI</a></h3>
+                <div class="source">ETHRWorld — Recruitment</div>
+                <p class="summary">&quot;Accenture shall pay to the United States $25,000,000, inclusive of civil penalties and interest on the Settlement Amount at ‌a rate of ⁠4% ⁠per annum from September 9, 2026,&quot; the settlement agreement made public on Monday ​said. It was signed by the U.S. Department of Justice and Accenture.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://hr.economictimes.indiatimes.com/news/workplace-4-0/talent-management/ai-set-to-reshape-hiring-in-indian-banks-as-routine-roles-give-way-to-specialist-skills/134250261" target="_blank" rel="noopener">AI set to reshape hiring in Indian banks as routine roles give way to specialist skills</a></h3>
+                <div class="source">ETHRWorld — Recruitment</div>
+                <p class="summary">The clearest indication has come from Axis Bank, which added about 400 branches in FY26 even as its employee strength fell 3% to 101,337 from 104,453 a year earlier. Its branch network increased to 6,275 from 5,879. The numbers suggest that the bank&#039;s expansion is becoming less dependent on a proportional increase in employee numbers.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://hr.economictimes.indiatimes.com/news/trends/leadership/senior-leadership-sees-rising-career-mobility-94-open-to-new-opportunities/133991783" target="_blank" rel="noopener">Senior leadership sees rising career mobility; 94% open to new opportunities</a></h3>
+                <div class="source">ETHRWorld — HR Tech</div>
+                <p class="summary">Executives are seeking faster career progression, broader responsibilities and greater opportunities for impact, even as organisations face growing pressure to keep pace, said the report based on a survey of over 1,200 C-level executives and senior leaders in the country.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://hr.economictimes.indiatimes.com/news/workplace-4-0/employee-wellbeing/tata-steel-scaling-up-ai-connected-workforce-systems-to-boost-industrial-safety/134115378" target="_blank" rel="noopener">Tata Steel scaling up AI, connected workforce systems to boost industrial safety</a></h3>
+                <div class="source">ETHRWorld — Recruitment</div>
+                <p class="summary">Global steel major Tata Steel is scaling up artificial intelligence, connected workforce systems and remote operations to make industrial safety more predictive, with the company already using more than 10,000 CCTV cameras and AI-enabled surveillance to identify unsafe behaviour and intervene before accidents occur, a top official said on Friday.</p>
             </article>
             
         </div>
+        
 
-        <!-- ПОДВАЛ -->
         <footer class="footer">
             <div class="ornament">❦ ❦ ❦</div>
             <div>Ведомость для HR Ак Барс · Автоматический дайджест</div>
