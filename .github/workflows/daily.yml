@@ -1,0 +1,32 @@
+name: Ежедневная HR-газета
+
+on:
+  schedule:
+    # Запуск каждый день в 6:00 UTC (это 9:00 по Москве)
+    - cron: '0 6 * * *'
+  workflow_dispatch:  # Позволяет запустить вручную для теста
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Скачать репозиторий
+        uses: actions/checkout@v4
+
+      - name: Установить Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Установить зависимости
+        run: pip install -r requirements.txt
+
+      - name: Запустить генератор газеты
+        run: python scripts/main.py
+
+      - name: Опубликовать на GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
