@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Ведомость для HR Ак Барс — ежедневная онлайн-газета
-Собирает RSS-новости и генерирует HTML в классическом газетном стиле.
+Собирает только HR-новости из RSS-источников и генерирует HTML-газету.
 """
 
 import os
@@ -14,19 +14,51 @@ from jinja2 import Template
 # 1. НАСТРОЙКИ
 # ============================================================
 
+# --- Источники новостей ---
+# Отбирайте только HR-профильные сайты. Если добавляете общий
+# новостной портал — фильтр по ключевым словам (ниже) отсечёт лишнее.
 RSS_FEEDS = [
-    # Российские источники
+    # --- Российские HR-источники ---
     {"name": "HR-Portal", "url": "https://hr-portal.ru/rss.xml", "category": "Россия"},
-    {"name": "CNews", "url": "https://www.cnews.ru/inc/rss/news.xml", "category": "Россия"},
+    {"name": "HR-Director", "url": "https://www.hr-director.ru/rss", "category": "Россия"},
+    {"name": "E-xecutive", "url": "https://www.e-xecutive.ru/rss/all.xml", "category": "Россия"},
 
-    # Международные источники
+    # --- Международные HR-источники ---
     {"name": "HR Exchange Network", "url": "https://www.hrexchangenetwork.com/rss/news-trends", "category": "Мир"},
-    {"name": "ETHRWorld", "url": "https://hr.economictimes.indiatimes.com/rss/trends/ai-in-hr", "category": "Мир"},
+    {"name": "ETHRWorld — HR Tech", "url": "https://hr.economictimes.indiatimes.com/rss/trends/ai-in-hr", "category": "Мир"},
+    {"name": "ETHRWorld — Recruitment", "url": "https://hr.economictimes.indiatimes.com/rss/workplace-4-0/recruitment", "category": "Мир"},
 ]
 
 MAX_ARTICLES = 12
 OUTPUT_DIR = "docs"
 OUTPUT_FILE = "index.html"
+
+# --- Фильтр релевантности ---
+# Новость остаётся в газете, только если хотя бы одно из этих слов
+# встречается в её заголовке или описании (без учёта регистра).
+HR_KEYWORDS_RU = [
+    "hr", "эйч-ар", "кадр", "персонал", "сотрудник", "работник",
+    "найм", "нанимат", "рекрут", "подбор", "отбор",
+    "онбординг", "адаптац", "мотивац", "вовлечён", "вовлечен",
+    "обучени", "развити", "карьер", "талант", "компетенц",
+    "руководител", "менеджер", "лидерств", "команд",
+    "зарплат", "компенсац", "льгот", "бенефит",
+    "удержан", "текучест", "увольн", "трудов", "employment",
+    "корпоративн", "hr-бренд", "hr бренд", "кадров",
+    "релокац", "гибридн", "удалёнк", "удаленк",
+    "рекрутинг", "hiring", "talent", "employer",
+]
+
+HR_KEYWORDS_EN = [
+    "hr ", "hr-", "human resource", "people ops", "people operation",
+    "talent", "recruit", "hiring", "hire ", "onboard",
+    "employee", "workforce", "workplace", "worker",
+    "engagement", "retention", "attrition", "turnover",
+    "payroll", "compensation", "benefit", "salary", "wage",
+    "performance management", "learning", "development",
+    "leadership", "manager", "management", "culture", "dei",
+    "diversity", "inclusion", "wellbeing", "well-being",
+]
 
 # ============================================================
 # 2. ГАЗЕТНЫЙ HTML-ШАБЛОН
@@ -40,20 +72,11 @@ HTML_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ведомость для HR Ак Барс</title>
 
-    <!-- Классические газетные шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
-        /* ============================================================
-           ПАЛИТРА (газетная)
-           Бумага:   #f4efe4
-           Чернила:  #1a1a1a
-           Акцент:   #0d4d3c (тёмно-зелёный Ак Барс)
-           Приглушённый: #6b6256
-           ============================================================ */
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
@@ -64,7 +87,6 @@ HTML_TEMPLATE = """
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Слегка "шершавая" бумага */
         body {
             background-image:
                 radial-gradient(circle at 20% 30%, rgba(0,0,0,0.02) 0%, transparent 50%),
@@ -83,7 +105,6 @@ HTML_TEMPLATE = """
             position: relative;
         }
 
-        /* Тонкая двойная рамка вокруг всей полосы */
         .newspaper::before {
             content: "";
             position: absolute;
@@ -91,10 +112,6 @@ HTML_TEMPLATE = """
             border: 1px solid #1a1a1a;
             pointer-events: none;
         }
-
-        /* ============================================================
-           ШАПКА (masthead)
-           ============================================================ */
 
         .masthead {
             text-align: center;
@@ -161,10 +178,6 @@ HTML_TEMPLATE = """
             letter-spacing: 3px;
         }
 
-        /* ============================================================
-           СЕТКА ГАЗЕТЫ
-           ============================================================ */
-
         .news-grid {
             column-count: 3;
             column-gap: 34px;
@@ -185,10 +198,6 @@ HTML_TEMPLATE = """
             .masthead .bottom-line { flex-direction: column; gap: 6px; }
         }
 
-        /* ============================================================
-           КАРТОЧКА СТАТЬИ
-           ============================================================ */
-
         .article {
             break-inside: avoid;
             margin-bottom: 26px;
@@ -197,7 +206,6 @@ HTML_TEMPLATE = """
         }
         .article:last-child { border-bottom: none; }
 
-        /* Первая статья — крупнее */
         .article.lead h3 {
             font-size: 1.55rem;
             line-height: 1.2;
@@ -240,9 +248,7 @@ HTML_TEMPLATE = """
             color: #6b6256;
             margin-bottom: 10px;
         }
-        .article .source::before {
-            content: "— ";
-        }
+        .article .source::before { content: "— "; }
 
         .article .summary {
             font-size: 0.95rem;
@@ -251,7 +257,6 @@ HTML_TEMPLATE = """
             color: #2a2a2a;
         }
 
-        /* Буквица у ведущей статьи */
         .article.lead .summary::first-letter {
             font-family: 'Playfair Display', serif;
             font-weight: 900;
@@ -262,9 +267,13 @@ HTML_TEMPLATE = """
             color: #0d4d3c;
         }
 
-        /* ============================================================
-           ПОДВАЛ
-           ============================================================ */
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            font-style: italic;
+            color: #6b6256;
+            font-size: 1.1rem;
+        }
 
         .footer {
             margin-top: 42px;
@@ -290,7 +299,6 @@ HTML_TEMPLATE = """
 <body>
     <div class="newspaper">
 
-        <!-- ШАПКА -->
         <header class="masthead">
             <div class="top-line">
                 <span>Корпоративное издание</span>
@@ -308,7 +316,7 @@ HTML_TEMPLATE = """
             </div>
         </header>
 
-        <!-- НОВОСТИ -->
+        {% if articles %}
         <div class="news-grid">
             {% for article in articles %}
             <article class="article {% if loop.first %}lead{% endif %}">
@@ -319,8 +327,13 @@ HTML_TEMPLATE = """
             </article>
             {% endfor %}
         </div>
+        {% else %}
+        <div class="empty">
+            Сегодня свежих HR-новостей не нашлось.<br>
+            Газета обновится завтра.
+        </div>
+        {% endif %}
 
-        <!-- ПОДВАЛ -->
         <footer class="footer">
             <div class="ornament">❦ ❦ ❦</div>
             <div>Ведомость для HR Ак Барс · Автоматический дайджест</div>
@@ -337,7 +350,7 @@ HTML_TEMPLATE = """
 # 3. ЛОГИКА
 # ============================================================
 
-def clean_summary(text, max_length=320):
+def clean_summary(text, max_length=420):
     if not text:
         return "Читать полностью на сайте источника."
     clean = re.sub(r'<[^>]+>', '', text)
@@ -347,23 +360,53 @@ def clean_summary(text, max_length=320):
     return clean
 
 
+def is_hr_relevant(title, summary):
+    """Проверяет, относится ли новость к HR-тематике."""
+    text = (title + " " + summary).lower()
+
+    for kw in HR_KEYWORDS_RU:
+        if kw in text:
+            return True
+
+    # Английские ключи ищем с границей слова, чтобы не ловить случайные совпадения
+    for kw in HR_KEYWORDS_EN:
+        if re.search(r'\b' + re.escape(kw), text):
+            return True
+
+    return False
+
+
 def fetch_news():
     all_articles = []
+    skipped = 0
+
     for feed_info in RSS_FEEDS:
         try:
             print(f"Читаю: {feed_info['name']}...")
             feed = feedparser.parse(feed_info['url'])
-            for entry in feed.entries[:5]:
+
+            for entry in feed.entries[:10]:
+                title = entry.get('title', 'Без заголовка')
+                summary = clean_summary(entry.get('summary', ''))
+
+                # Пропускаем новости, не относящиеся к HR
+                if not is_hr_relevant(title, summary):
+                    skipped += 1
+                    continue
+
                 all_articles.append({
-                    'title': entry.get('title', 'Без заголовка'),
+                    'title': title,
                     'link': entry.get('link', '#'),
-                    'summary': clean_summary(entry.get('summary', '')),
+                    'summary': summary,
                     'source': feed_info['name'],
                     'category': feed_info['category'],
                     'published': entry.get('published', ''),
                 })
+
         except Exception as e:
             print(f"Ошибка при чтении {feed_info['name']}: {e}")
+
+    print(f"Отфильтровано нерелевантных новостей: {skipped}")
 
     all_articles.sort(key=lambda x: x.get('published', ''), reverse=True)
     return all_articles[:MAX_ARTICLES]
@@ -374,16 +417,12 @@ def generate_newspaper(articles):
 
     template = Template(HTML_TEMPLATE)
     today = datetime.date.today()
-    date_str = today.strftime("%d %B %Y")
 
-    # Русские месяцы
     months = {
         1:"января",2:"февраля",3:"марта",4:"апреля",5:"мая",6:"июня",
         7:"июля",8:"августа",9:"сентября",10:"октября",11:"ноября",12:"декабря"
     }
     date_str = f"{today.day} {months[today.month]} {today.year}"
-
-    # Номер выпуска — сколько дней от начала года
     issue_number = today.timetuple().tm_yday
 
     html = template.render(
@@ -402,7 +441,7 @@ def generate_newspaper(articles):
 def main():
     print("=== Ведомость для HR Ак Барс ===")
     articles = fetch_news()
-    print(f"Собрано новостей: {len(articles)}")
+    print(f"Собрано HR-новостей: {len(articles)}")
     generate_newspaper(articles)
     print("Готово!")
 
