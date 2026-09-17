@@ -1,5 +1,8 @@
 name: Ежедневная HR-газета
 
+permissions:
+  contents: write
+
 on:
   schedule:
     # Запуск каждый день в 6:00 UTC (это 9:00 по Москве)
@@ -23,6 +26,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Запустить генератор газеты
+        env:
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
         run: python scripts/main.py
 
       - name: Опубликовать на GitHub Pages
