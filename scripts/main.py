@@ -2,7 +2,7 @@
 """
 Ведомость для HR Ак Барс — ежедневная онлайн-газета
 Стиль: «Ежедневный пророк» (Гарри Поттер).
-Только свежие HR-новости за последние 2 суток.
+Собирает свежие HR-новости за неделю с автопереводом.
 """
 
 import os
@@ -11,6 +11,7 @@ import time
 import datetime
 import feedparser
 from jinja2 import Template
+from deep_translator import GoogleTranslator
 
 # ============================================================
 # 1. НАСТРОЙКИ
@@ -19,24 +20,28 @@ from jinja2 import Template
 # --- Источники новостей ---
 RSS_FEEDS = [
     # --- Российские ---
-    {"name": "HBR Россия", "url": "https://hbr-russia.ru/rss/news", "category": "Аналитика"},
-    {"name": "HR-Portal", "url": "https://hr-portal.ru/rss.xml", "category": "Россия"},
-    {"name": "HR-Director", "url": "https://www.hr-director.ru/rss", "category": "Россия"},
-    {"name": "Cossa", "url": "https://www.cossa.ru/rss/", "category": "Технологии"},
-    {"name": "E-xecutive", "url": "https://www.e-xecutive.ru/rss/all.xml", "category": "Россия"},
-    {"name": "Forbes Россия", "url": "https://www.forbes.ru/newrss.xml", "category": "Мир"},
+    {"name": "HBR Россия", "url": "https://hbr-russia.ru/rss/news", "category": "Аналитика", "lang": "ru"},
+    {"name": "HR-Portal", "url": "https://hr-portal.ru/rss.xml", "category": "Россия", "lang": "ru"},
+    {"name": "HR-Director", "url": "https://www.hr-director.ru/rss", "category": "Россия", "lang": "ru"},
+    {"name": "Cossa", "url": "https://www.cossa.ru/rss/", "category": "Технологии", "lang": "ru"},
+    {"name": "E-xecutive", "url": "https://www.e-xecutive.ru/rss/all.xml", "category": "Россия", "lang": "ru"},
+    {"name": "Forbes Россия", "url": "https://www.forbes.ru/newrss.xml", "category": "Мир", "lang": "ru"},
 
-    # --- Международные (пока без перевода) ---
-    {"name": "Josh Bersin", "url": "https://joshbersin.com/feed/", "category": "Аналитика"},
-    {"name": "HR Executive", "url": "https://hrexecutive.com/feed/", "category": "Мир"},
+    # --- Международные (с автопереводом) ---
+    {"name": "Josh Bersin", "url": "https://joshbersin.com/feed/", "category": "Аналитика", "lang": "en"},
+    {"name": "HR Executive", "url": "https://hrexecutive.com/feed/", "category": "Мир", "lang": "en"},
+    {"name": "SHRM", "url": "https://www.shrm.org/rss/news.xml", "category": "Мир", "lang": "en"},
+    {"name": "HR Dive", "url": "https://www.hrdive.com/feeds/news/", "category": "Мир", "lang": "en"},
+    {"name": "People Matters", "url": "https://www.peoplematters.in/rss/news", "category": "Мир", "lang": "en"},
+    {"name": "HR Exchange Network", "url": "https://www.hrexchangenetwork.com/rss/news", "category": "Мир", "lang": "en"},
 ]
 
-MAX_ARTICLES = 12
+MAX_ARTICLES = 20
 OUTPUT_DIR = "docs"
 OUTPUT_FILE = "index.html"
 
 # --- Свежесть: новости не старше N суток ---
-DAYS_BACK = 2
+DAYS_BACK = 7
 
 # --- Фильтр релевантности ---
 HR_KEYWORDS_RU = [
@@ -64,7 +69,7 @@ HR_KEYWORDS_EN = [
 ]
 
 # ============================================================
-# 2. HTML-ШАБЛОН В СТИЛЕ «ЕЖЕДНЕВНОГО ПРОРОКА»
+# 2. HTML-ШАБЛОН (без изменений)
 # ============================================================
 
 HTML_TEMPLATE = """
@@ -83,11 +88,6 @@ HTML_TEMPLATE = """
     <style>
         /* ============================================================
            ПАЛИТРА (пергамент и чернила)
-           Пергамент светлый:  #efe2c3
-           Пергамент тёмный:   #d9c9a3
-           Чернила:            #2b1810 (тёмно-коричневый)
-           Акцент (АК БАРС):   #2d5a3d (тёмно-зелёный)
-           Золото:             #8b6f47
            ============================================================ */
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -132,7 +132,6 @@ HTML_TEMPLATE = """
             border: 1px solid #8b6f47;
         }
 
-        /* Внешняя рамка — двойная линия */
         .newspaper::before {
             content: "";
             position: absolute;
@@ -140,7 +139,6 @@ HTML_TEMPLATE = """
             border: 1px solid #6b4423;
             pointer-events: none;
         }
-        /* Внутренняя рамка — тонкая */
         .newspaper::after {
             content: "";
             position: absolute;
@@ -176,11 +174,9 @@ HTML_TEMPLATE = """
             border-bottom: 1px solid #6b4423;
         }
 
-        /* Орнаменты по бокам от верхней линии */
         .masthead .top-line span:first-child::before { content: "✦ "; }
         .masthead .top-line span:last-child::after  { content: " ✦"; }
 
-        /* Главный заголовок в декоративном шрифте */
         .masthead h1 {
             font-family: 'Yeseva One', Georgia, serif;
             font-weight: 400;
@@ -202,7 +198,6 @@ HTML_TEMPLATE = """
             margin: 0 6px;
         }
 
-        /* Подзаголовок — рукописный */
         .masthead .tagline {
             font-family: 'Caveat', cursive;
             font-size: 1.5rem;
@@ -285,13 +280,11 @@ HTML_TEMPLATE = """
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Ведущая статья — крупнее */
         .article.lead h3 {
             font-size: 1.6rem;
             line-height: 1.22;
         }
 
-        /* Рубрика */
         .article .category {
             display: inline-block;
             font-family: 'PT Sans', Arial, sans-serif;
@@ -306,7 +299,6 @@ HTML_TEMPLATE = """
         }
         .article .category::before { content: "❖ "; color: #8b6f47; }
 
-        /* Заголовок статьи */
         .article h3 {
             font-family: 'Lora', Georgia, serif;
             font-weight: 700;
@@ -323,7 +315,6 @@ HTML_TEMPLATE = """
         }
         .article h3 a:hover { color: #2d5a3d; }
 
-        /* Источник */
         .article .source {
             font-family: 'PT Sans', Arial, sans-serif;
             font-size: 0.68rem;
@@ -335,7 +326,6 @@ HTML_TEMPLATE = """
         }
         .article .source::before { content: "— "; }
 
-        /* Текст */
         .article .summary {
             font-size: 0.95rem;
             text-align: justify;
@@ -343,7 +333,6 @@ HTML_TEMPLATE = """
             color: #3a2418;
         }
 
-        /* Буквица у ведущей статьи */
         .article.lead .summary::first-letter {
             font-family: 'Yeseva One', serif;
             float: left;
@@ -354,7 +343,6 @@ HTML_TEMPLATE = """
             text-shadow: 1px 1px 0 rgba(139, 111, 71, 0.4);
         }
 
-        /* Пустой выпуск */
         .empty {
             text-align: center;
             padding: 70px 20px;
@@ -369,10 +357,6 @@ HTML_TEMPLATE = """
             margin-bottom: 16px;
             color: #8b6f47;
         }
-
-        /* ============================================================
-           ПОДВАЛ
-           ============================================================ */
 
         .footer {
             margin-top: 46px;
@@ -496,6 +480,18 @@ def is_hr_relevant(title, summary):
     return False
 
 
+def translate_text(text, source_lang='en', target_lang='ru'):
+    """Переводит текст с английского на русский."""
+    if not text:
+        return text
+    try:
+        translated = GoogleTranslator(source=source_lang, target=target_lang).translate(text)
+        return translated
+    except Exception as e:
+        print(f"  ⚠ Ошибка перевода: {e}")
+        return text  # Возвращаем оригинал в случае ошибки
+
+
 def fetch_news():
     all_articles = []
     skipped_old = 0
@@ -507,7 +503,7 @@ def fetch_news():
             feed = feedparser.parse(feed_info['url'])
             print(f"  → получено записей: {len(feed.entries)}")
 
-            for entry in feed.entries[:15]:
+            for entry in feed.entries[:20]: # Увеличим лимит для более широкого охвата
                 title = entry.get('title', 'Без заголовка')
                 summary = clean_summary(entry.get('summary', ''))
 
@@ -518,6 +514,12 @@ def fetch_news():
                 if not is_hr_relevant(title, summary):
                     skipped_irrelevant += 1
                     continue
+
+                # Перевод для английских источников
+                if feed_info.get('lang') == 'en':
+                    print(f"  → Перевод: {title[:50]}...")
+                    title = translate_text(title)
+                    summary = translate_text(summary)
 
                 published = get_entry_date(entry)
                 all_articles.append({
