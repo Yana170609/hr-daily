@@ -11,7 +11,8 @@ import time
 import datetime
 import feedparser
 from jinja2 import Template
-from deep_translator import GoogleTranslator
+# Импортируем оба переводчика
+from deep_translator import GoogleTranslator, MyMemoryTranslator
 
 # ============================================================
 # 1. НАСТРОЙКИ
@@ -481,15 +482,33 @@ def is_hr_relevant(title, summary):
 
 
 def translate_text(text, source_lang='en', target_lang='ru'):
-    """Переводит текст с английского на русский."""
+    """Переводит текст. Пытается использовать Google, затем MyMemory."""
     if not text:
         return text
+
+    # --- Попытка 1: Google Translate (с 3 попытками) ---
+    for attempt in range(3):
+        try:
+            translated = GoogleTranslator(source=source_lang, target=target_lang).translate(text)
+            if translated and translated.lower() != text.lower():
+                print(f"  → Перевод (Google): OK")
+                return translated
+        except Exception as e:
+            print(f"  ⚠ Google попытка {attempt+1} не удалась: {e}")
+            time.sleep(1) # Небольшая пауза перед следующей попыткой
+
+    # --- Попытка 2: MyMemory Translator ---
     try:
-        translated = GoogleTranslator(source=source_lang, target=target_lang).translate(text)
-        return translated
+        translated = MyMemoryTranslator(source=source_lang, target=target_lang).translate(text)
+        if translated and translated.lower() != text.lower():
+            print(f"  → Перевод (MyMemory): OK")
+            return translated
     except Exception as e:
-        print(f"  ⚠ Ошибка перевода: {e}")
-        return text  # Возвращаем оригинал в случае ошибки
+        print(f"  ⚠ MyMemory не удался: {e}")
+
+    # --- Если все попытки не удались, возвращаем оригинал ---
+    print(f"  ⚠ Не удалось перевести: {text[:50]}...")
+    return text
 
 
 def fetch_news():
