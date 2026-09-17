@@ -5,27 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ведомость для HR Ак Барс</title>
-
-    <!-- Старинные шрифты с поддержкой кириллицы -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Caveat:wght@500&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
-
     <style>
-        /* ============================================================
-           ПАЛИТРА (пергамент и чернила)
-           ============================================================ */
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        html, body {
-            color: #2b1810;
-            font-family: 'Lora', Georgia, serif;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Многослойный пергамент: пятна, градиент, оттенки */
+        html, body { color: #2b1810; font-family: 'Lora', Georgia, serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
         body {
             background-color: #d9c9a3;
             background-image:
@@ -39,11 +24,8 @@
             padding: 40px 20px;
             min-height: 100vh;
         }
-
-        /* «Газета» — центральный свиток */
         .newspaper {
-            max-width: 1180px;
-            margin: 0 auto;
+            max-width: 1180px; margin: 0 auto;
             background-color: #ede0c4;
             background-image:
                 radial-gradient(circle at 30% 15%, rgba(139, 90, 43, 0.06) 0%, transparent 30%),
@@ -54,284 +36,110 @@
                 inset 0 0 120px rgba(107, 68, 35, 0.20),
                 inset 0 0 30px rgba(107, 68, 35, 0.12),
                 0 15px 50px rgba(0, 0, 0, 0.35);
-            position: relative;
-            border: 1px solid #8b6f47;
+            position: relative; border: 1px solid #8b6f47;
         }
-
         .newspaper::before {
-            content: "";
-            position: absolute;
+            content: ""; position: absolute;
             top: 14px; left: 14px; right: 14px; bottom: 14px;
-            border: 1px solid #6b4423;
-            pointer-events: none;
+            border: 1px solid #6b4423; pointer-events: none;
         }
         .newspaper::after {
-            content: "";
-            position: absolute;
+            content: ""; position: absolute;
             top: 22px; left: 22px; right: 22px; bottom: 22px;
-            border: 1px solid rgba(107, 68, 35, 0.4);
-            pointer-events: none;
+            border: 1px solid rgba(107, 68, 35, 0.4); pointer-events: none;
         }
-
-        /* ============================================================
-           ШАПКА (masthead)
-           ============================================================ */
-
-        .masthead {
-            text-align: center;
-            padding-bottom: 26px;
-            margin-bottom: 32px;
-            position: relative;
-            border-bottom: 2px solid #2b1810;
-            z-index: 1;
-        }
-
+        .masthead { text-align: center; padding-bottom: 26px; margin-bottom: 32px; position: relative; border-bottom: 2px solid #2b1810; z-index: 1; }
         .masthead .top-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-family: 'PT Sans', Arial, sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: #6b4423;
-            padding-bottom: 16px;
-            margin-bottom: 24px;
-            border-bottom: 1px solid #6b4423;
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: 'PT Sans', Arial, sans-serif; font-size: 0.7rem;
+            letter-spacing: 3px; text-transform: uppercase; color: #6b4423;
+            padding-bottom: 16px; margin-bottom: 24px; border-bottom: 1px solid #6b4423;
         }
-
         .masthead .top-line span:first-child::before { content: "✦ "; }
-        .masthead .top-line span:last-child::after  { content: " ✦"; }
-
+        .masthead .top-line span:last-child::after { content: " ✦"; }
         .masthead h1 {
-            font-family: 'Yeseva One', Georgia, serif;
-            font-weight: 400;
-            font-size: 4.6rem;
-            letter-spacing: -1px;
-            line-height: 1;
-            color: #2b1810;
-            margin: 6px 0 14px;
-            text-shadow:
-                1px 1px 0 rgba(139, 111, 71, 0.4),
-                2px 2px 4px rgba(43, 24, 16, 0.15);
+            font-family: 'Yeseva One', Georgia, serif; font-weight: 400;
+            font-size: 4.6rem; letter-spacing: -1px; line-height: 1;
+            color: #2b1810; margin: 6px 0 14px;
+            text-shadow: 1px 1px 0 rgba(139, 111, 71, 0.4), 2px 2px 4px rgba(43, 24, 16, 0.15);
         }
-
-        .masthead h1 .accent {
-            color: #2d5a3d;
-            font-style: italic;
-            display: inline-block;
-            transform: rotate(-2deg);
-            margin: 0 6px;
-        }
-
-        .masthead .tagline {
-            font-family: 'Caveat', cursive;
-            font-size: 1.5rem;
-            color: #6b4423;
-            margin-bottom: 22px;
-            letter-spacing: 0.5px;
-        }
-
-        .masthead .tagline::before,
-        .masthead .tagline::after {
-            content: "  ~  ";
-            color: #8b6f47;
-            font-size: 1.1rem;
-        }
-
+        .masthead h1 .accent { color: #2d5a3d; font-style: italic; display: inline-block; transform: rotate(-2deg); margin: 0 6px; }
+        .masthead .tagline { font-family: 'Caveat', cursive; font-size: 1.5rem; color: #6b4423; margin-bottom: 22px; letter-spacing: 0.5px; }
+        .masthead .tagline::before, .masthead .tagline::after { content: "  ~  "; color: #8b6f47; font-size: 1.1rem; }
         .masthead .bottom-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-family: 'PT Sans', Arial, sans-serif;
-            font-size: 0.75rem;
-            letter-spacing: 2.5px;
-            text-transform: uppercase;
-            color: #2b1810;
-            padding-top: 16px;
-            border-top: 1px solid #6b4423;
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: 'PT Sans', Arial, sans-serif; font-size: 0.75rem;
+            letter-spacing: 2.5px; text-transform: uppercase; color: #2b1810;
+            padding-top: 16px; border-top: 1px solid #6b4423;
         }
-
         .masthead .bottom-line .issue {
-            background: #2d5a3d;
-            color: #efe2c3;
-            padding: 5px 14px;
-            letter-spacing: 3px;
-            font-weight: 700;
+            background: #2d5a3d; color: #efe2c3; padding: 5px 14px;
+            letter-spacing: 3px; font-weight: 700;
             box-shadow: 1px 1px 0 rgba(43, 24, 16, 0.4);
         }
-
-        /* ============================================================
-           СЕТКА ГАЗЕТЫ
-           ============================================================ */
-
-        .news-grid {
-            column-count: 3;
-            column-gap: 36px;
-            column-rule: 1px solid #a88b5d;
-            position: relative;
-            z-index: 1;
-        }
-
-        @media (max-width: 1000px) {
-            .news-grid { column-count: 2; }
-            .masthead h1 { font-size: 3.2rem; }
-            .newspaper { padding: 40px 32px 30px; }
-        }
+        .news-grid { column-count: 3; column-gap: 36px; column-rule: 1px solid #a88b5d; position: relative; z-index: 1; }
+        @media (max-width: 1000px) { .news-grid { column-count: 2; } .masthead h1 { font-size: 3.2rem; } .newspaper { padding: 40px 32px 30px; } }
         @media (max-width: 640px) {
-            .news-grid { column-count: 1; }
-            .masthead h1 { font-size: 2.2rem; }
+            .news-grid { column-count: 1; } .masthead h1 { font-size: 2.2rem; }
             .newspaper { padding: 28px 22px; }
-            .newspaper::before,
-            .newspaper::after { display: none; }
-            .masthead .top-line,
-            .masthead .bottom-line { flex-direction: column; gap: 6px; }
+            .newspaper::before, .newspaper::after { display: none; }
+            .masthead .top-line, .masthead .bottom-line { flex-direction: column; gap: 6px; }
         }
-
-        /* ============================================================
-           КАРТОЧКА СТАТЬИ
-           ============================================================ */
-
-        .article {
-            break-inside: avoid;
-            margin-bottom: 28px;
-            padding-bottom: 24px;
-            border-bottom: 1px dashed #8b6f47;
-            animation: fadeIn 0.7s ease-out backwards;
-        }
+        .article { break-inside: avoid; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px dashed #8b6f47; animation: fadeIn 0.7s ease-out backwards; }
         .article:last-child { border-bottom: none; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .article.lead h3 {
-            font-size: 1.6rem;
-            line-height: 1.22;
-        }
-
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .article.lead h3 { font-size: 1.6rem; line-height: 1.22; }
         .article .category {
-            display: inline-block;
-            font-family: 'PT Sans', Arial, sans-serif;
-            font-size: 0.62rem;
-            font-weight: 700;
-            letter-spacing: 2.5px;
-            text-transform: uppercase;
-            color: #2d5a3d;
-            margin-bottom: 10px;
-            padding: 2px 0 2px 0;
-            border-bottom: 1px solid #2d5a3d;
+            display: inline-block; font-family: 'PT Sans', Arial, sans-serif;
+            font-size: 0.62rem; font-weight: 700; letter-spacing: 2.5px;
+            text-transform: uppercase; color: #2d5a3d;
+            margin-bottom: 10px; padding: 2px 0; border-bottom: 1px solid #2d5a3d;
         }
         .article .category::before { content: "❖ "; color: #8b6f47; }
-
-        .article h3 {
-            font-family: 'Lora', Georgia, serif;
-            font-weight: 700;
-            font-size: 1.25rem;
-            line-height: 1.28;
-            margin-bottom: 10px;
-            color: #2b1810;
-        }
-
-        .article h3 a {
-            color: inherit;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
+        .article h3 { font-family: 'Lora', Georgia, serif; font-weight: 700; font-size: 1.25rem; line-height: 1.28; margin-bottom: 10px; color: #2b1810; }
+        .article h3 a { color: inherit; text-decoration: none; transition: color 0.2s; }
         .article h3 a:hover { color: #2d5a3d; }
-
         .article .source {
-            font-family: 'PT Sans', Arial, sans-serif;
-            font-size: 0.68rem;
-            letter-spacing: 1.8px;
-            text-transform: uppercase;
-            color: #6b4423;
-            margin-bottom: 12px;
-            font-style: italic;
+            font-family: 'PT Sans', Arial, sans-serif; font-size: 0.68rem;
+            letter-spacing: 1.8px; text-transform: uppercase; color: #6b4423;
+            margin-bottom: 12px; font-style: italic;
         }
         .article .source::before { content: "— "; }
-
-        .article .summary {
-            font-size: 0.95rem;
-            text-align: justify;
-            hyphens: auto;
-            color: #3a2418;
-        }
-
+        .article .summary { font-size: 0.95rem; text-align: justify; hyphens: auto; color: #3a2418; }
         .article.lead .summary::first-letter {
-            font-family: 'Yeseva One', serif;
-            float: left;
-            font-size: 3.5rem;
-            line-height: 0.85;
-            padding: 6px 10px 0 0;
-            color: #2d5a3d;
+            font-family: 'Yeseva One', serif; float: left; font-size: 3.5rem;
+            line-height: 0.85; padding: 6px 10px 0 0; color: #2d5a3d;
             text-shadow: 1px 1px 0 rgba(139, 111, 71, 0.4);
         }
-
-        .empty {
-            text-align: center;
-            padding: 70px 20px;
-            font-family: 'Caveat', cursive;
-            font-size: 1.6rem;
-            color: #6b4423;
-        }
-        .empty::before {
-            content: "✦";
-            display: block;
-            font-size: 2rem;
-            margin-bottom: 16px;
-            color: #8b6f47;
-        }
-
+        .empty { text-align: center; padding: 70px 20px; font-family: 'Caveat', cursive; font-size: 1.6rem; color: #6b4423; }
+        .empty::before { content: "✦"; display: block; font-size: 2rem; margin-bottom: 16px; color: #8b6f47; }
         .footer {
-            margin-top: 46px;
-            padding-top: 24px;
-            border-top: 2px solid #2b1810;
-            text-align: center;
-            font-family: 'PT Sans', Arial, sans-serif;
-            font-size: 0.72rem;
-            letter-spacing: 1.8px;
-            text-transform: uppercase;
-            color: #6b4423;
-            line-height: 2;
-            position: relative;
-            z-index: 1;
+            margin-top: 46px; padding-top: 24px;
+            border-top: 2px solid #2b1810; text-align: center;
+            font-family: 'PT Sans', Arial, sans-serif; font-size: 0.72rem;
+            letter-spacing: 1.8px; text-transform: uppercase; color: #6b4423;
+            line-height: 2; position: relative; z-index: 1;
         }
-
-        .footer .ornament {
-            color: #2d5a3d;
-            font-size: 1.1rem;
-            letter-spacing: 10px;
-            margin-bottom: 10px;
-        }
-
-        .footer .wand {
-            color: #8b6f47;
-            font-size: 1rem;
-        }
+        .footer .ornament { color: #2d5a3d; font-size: 1.1rem; letter-spacing: 10px; margin-bottom: 10px; }
+        .footer .wand { color: #8b6f47; font-size: 1rem; }
     </style>
 </head>
 <body>
     <div class="newspaper">
-
         <header class="masthead">
             <div class="top-line">
                 <span>Корпоративное издание</span>
                 <span>Для внутреннего пользования</span>
                 <span>Выпуск №260</span>
             </div>
-
             <h1>Ведомость <span class="accent">для HR</span></h1>
             <div class="tagline">Новости, тренды и инновации в управлении персоналом</div>
-
             <div class="bottom-line">
                 <span>17 сентября 2026</span>
                 <span class="issue">АК БАРС</span>
-                <span>Материалов в номере: 15</span>
+                <span>Материалов в номере: 14</span>
             </div>
         </header>
-
         
         <div class="news-grid">
             
@@ -433,22 +241,13 @@
                 <p class="summary">Исследование E-Promo.</p>
             </article>
             
-            <article class="article ">
-                <span class="category">Технологии</span>
-                <h3><a href="https://www.cossa.ru/news/350815/" target="_blank" rel="noopener">Станислав Кондрашов: при марже в 4% агентство в России продаёт не часы, а ответственность</a></h3>
-                <div class="source">Cossa</div>
-                <p class="summary">Маржинальность рекламных агентств упала с&nbsp;30–50% до&nbsp;4%, а&nbsp;зарплаты в&nbsp;отрасли выросли на&nbsp;21% за&nbsp;год. Станислав Кондрашов объясняет, почему выход из&nbsp;этой вилки не&nbsp;в&nbsp;оптимизации расходов.</p>
-            </article>
-            
         </div>
         
-
         <footer class="footer">
             <div class="ornament">✦ ❦ ✦ ❦ ✦</div>
             <div>Ведомость для HR Ак Барс · Автоматический дайджест</div>
             <div class="wand">Все права на оригинальные публикации принадлежат их авторам</div>
         </footer>
-
     </div>
 </body>
 </html>
