@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
 Ведомость для HR Ак Барс — ежедневная онлайн-газета
-Собирает только HR-новости из RSS-источников и генерирует HTML-газету.
+Стиль: «Ежедневный пророк» (Гарри Поттер).
+Только свежие HR-новости за последние 2 суток.
 """
 
 import os
 import re
+import time
 import datetime
 import feedparser
 from jinja2 import Template
@@ -15,27 +17,28 @@ from jinja2 import Template
 # ============================================================
 
 # --- Источники новостей ---
-# Отбирайте только HR-профильные сайты. Если добавляете общий
-# новостной портал — фильтр по ключевым словам (ниже) отсечёт лишнее.
 RSS_FEEDS = [
-    # --- Российские HR-источники ---
+    # --- Российские ---
+    {"name": "HBR Россия", "url": "https://hbr-russia.ru/rss/news", "category": "Аналитика"},
     {"name": "HR-Portal", "url": "https://hr-portal.ru/rss.xml", "category": "Россия"},
     {"name": "HR-Director", "url": "https://www.hr-director.ru/rss", "category": "Россия"},
+    {"name": "Cossa", "url": "https://www.cossa.ru/rss/", "category": "Технологии"},
     {"name": "E-xecutive", "url": "https://www.e-xecutive.ru/rss/all.xml", "category": "Россия"},
+    {"name": "Forbes Россия", "url": "https://www.forbes.ru/newrss.xml", "category": "Мир"},
 
-    # --- Международные HR-источники ---
-    {"name": "HR Exchange Network", "url": "https://www.hrexchangenetwork.com/rss/news-trends", "category": "Мир"},
-    {"name": "ETHRWorld — HR Tech", "url": "https://hr.economictimes.indiatimes.com/rss/trends/ai-in-hr", "category": "Мир"},
-    {"name": "ETHRWorld — Recruitment", "url": "https://hr.economictimes.indiatimes.com/rss/workplace-4-0/recruitment", "category": "Мир"},
+    # --- Международные (пока без перевода) ---
+    {"name": "Josh Bersin", "url": "https://joshbersin.com/feed/", "category": "Аналитика"},
+    {"name": "HR Executive", "url": "https://hrexecutive.com/feed/", "category": "Мир"},
 ]
 
 MAX_ARTICLES = 12
 OUTPUT_DIR = "docs"
 OUTPUT_FILE = "index.html"
 
+# --- Свежесть: новости не старше N суток ---
+DAYS_BACK = 2
+
 # --- Фильтр релевантности ---
-# Новость остаётся в газете, только если хотя бы одно из этих слов
-# встречается в её заголовке или описании (без учёта регистра).
 HR_KEYWORDS_RU = [
     "hr", "эйч-ар", "кадр", "персонал", "сотрудник", "работник",
     "найм", "нанимат", "рекрут", "подбор", "отбор",
@@ -61,7 +64,7 @@ HR_KEYWORDS_EN = [
 ]
 
 # ============================================================
-# 2. ГАЗЕТНЫЙ HTML-ШАБЛОН
+# 2. HTML-ШАБЛОН В СТИЛЕ «ЕЖЕДНЕВНОГО ПРОРОКА»
 # ============================================================
 
 HTML_TEMPLATE = """
@@ -72,53 +75,91 @@ HTML_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ведомость для HR Ак Барс</title>
 
+    <!-- Старинные шрифты с поддержкой кириллицы -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Caveat:wght@500&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
+        /* ============================================================
+           ПАЛИТРА (пергамент и чернила)
+           Пергамент светлый:  #efe2c3
+           Пергамент тёмный:   #d9c9a3
+           Чернила:            #2b1810 (тёмно-коричневый)
+           Акцент (АК БАРС):   #2d5a3d (тёмно-зелёный)
+           Золото:             #8b6f47
+           ============================================================ */
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
-            background: #e8e2d4;
-            color: #1a1a1a;
-            font-family: 'PT Serif', Georgia, serif;
-            line-height: 1.55;
+            color: #2b1810;
+            font-family: 'Lora', Georgia, serif;
+            line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
 
+        /* Многослойный пергамент: пятна, градиент, оттенки */
         body {
+            background-color: #d9c9a3;
             background-image:
-                radial-gradient(circle at 20% 30%, rgba(0,0,0,0.02) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(0,0,0,0.02) 0%, transparent 50%);
-            padding: 30px 15px;
+                radial-gradient(ellipse at 15% 20%, rgba(139, 90, 43, 0.15) 0%, transparent 40%),
+                radial-gradient(ellipse at 85% 30%, rgba(139, 90, 43, 0.10) 0%, transparent 35%),
+                radial-gradient(ellipse at 50% 85%, rgba(139, 90, 43, 0.12) 0%, transparent 40%),
+                radial-gradient(ellipse at 25% 65%, rgba(139, 90, 43, 0.08) 0%, transparent 30%),
+                radial-gradient(ellipse at 75% 75%, rgba(139, 90, 43, 0.06) 0%, transparent 25%),
+                linear-gradient(135deg, #efe2c3 0%, #e5d5b3 50%, #d9c9a3 100%);
+            background-attachment: fixed;
+            padding: 40px 20px;
+            min-height: 100vh;
         }
 
+        /* «Газета» — центральный свиток */
         .newspaper {
             max-width: 1180px;
             margin: 0 auto;
-            background: #f4efe4;
-            padding: 50px 55px 40px;
+            background-color: #ede0c4;
+            background-image:
+                radial-gradient(circle at 30% 15%, rgba(139, 90, 43, 0.06) 0%, transparent 30%),
+                radial-gradient(circle at 70% 60%, rgba(139, 90, 43, 0.05) 0%, transparent 35%),
+                radial-gradient(circle at 10% 90%, rgba(139, 90, 43, 0.04) 0%, transparent 25%);
+            padding: 55px 60px 45px;
             box-shadow:
-                0 1px 3px rgba(0,0,0,0.08),
-                0 15px 40px rgba(0,0,0,0.12);
+                inset 0 0 120px rgba(107, 68, 35, 0.20),
+                inset 0 0 30px rgba(107, 68, 35, 0.12),
+                0 15px 50px rgba(0, 0, 0, 0.35);
             position: relative;
+            border: 1px solid #8b6f47;
         }
 
+        /* Внешняя рамка — двойная линия */
         .newspaper::before {
             content: "";
             position: absolute;
-            top: 18px; left: 18px; right: 18px; bottom: 18px;
-            border: 1px solid #1a1a1a;
+            top: 14px; left: 14px; right: 14px; bottom: 14px;
+            border: 1px solid #6b4423;
+            pointer-events: none;
+        }
+        /* Внутренняя рамка — тонкая */
+        .newspaper::after {
+            content: "";
+            position: absolute;
+            top: 22px; left: 22px; right: 22px; bottom: 22px;
+            border: 1px solid rgba(107, 68, 35, 0.4);
             pointer-events: none;
         }
 
+        /* ============================================================
+           ШАПКА (masthead)
+           ============================================================ */
+
         .masthead {
             text-align: center;
-            padding-bottom: 22px;
-            margin-bottom: 28px;
-            border-bottom: 3px double #1a1a1a;
+            padding-bottom: 26px;
+            margin-bottom: 32px;
             position: relative;
+            border-bottom: 2px solid #2b1810;
+            z-index: 1;
         }
 
         .masthead .top-line {
@@ -129,33 +170,52 @@ HTML_TEMPLATE = """
             font-size: 0.7rem;
             letter-spacing: 3px;
             text-transform: uppercase;
-            color: #6b6256;
-            padding-bottom: 14px;
-            border-bottom: 1px solid #1a1a1a;
-            margin-bottom: 22px;
+            color: #6b4423;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #6b4423;
         }
 
+        /* Орнаменты по бокам от верхней линии */
+        .masthead .top-line span:first-child::before { content: "✦ "; }
+        .masthead .top-line span:last-child::after  { content: " ✦"; }
+
+        /* Главный заголовок в декоративном шрифте */
         .masthead h1 {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-weight: 900;
-            font-size: 4.8rem;
-            letter-spacing: -2px;
-            line-height: 0.95;
-            color: #1a1a1a;
-            margin: 6px 0 10px;
+            font-family: 'Yeseva One', Georgia, serif;
+            font-weight: 400;
+            font-size: 4.6rem;
+            letter-spacing: -1px;
+            line-height: 1;
+            color: #2b1810;
+            margin: 6px 0 14px;
+            text-shadow:
+                1px 1px 0 rgba(139, 111, 71, 0.4),
+                2px 2px 4px rgba(43, 24, 16, 0.15);
         }
 
         .masthead h1 .accent {
-            color: #0d4d3c;
+            color: #2d5a3d;
             font-style: italic;
+            display: inline-block;
+            transform: rotate(-2deg);
+            margin: 0 6px;
         }
 
+        /* Подзаголовок — рукописный */
         .masthead .tagline {
-            font-family: 'PT Serif', Georgia, serif;
-            font-style: italic;
-            font-size: 1.05rem;
-            color: #6b6256;
-            margin-bottom: 18px;
+            font-family: 'Caveat', cursive;
+            font-size: 1.5rem;
+            color: #6b4423;
+            margin-bottom: 22px;
+            letter-spacing: 0.5px;
+        }
+
+        .masthead .tagline::before,
+        .masthead .tagline::after {
+            content: "  ~  ";
+            color: #8b6f47;
+            font-size: 1.1rem;
         }
 
         .masthead .bottom-line {
@@ -164,135 +224,181 @@ HTML_TEMPLATE = """
             align-items: center;
             font-family: 'PT Sans', Arial, sans-serif;
             font-size: 0.75rem;
-            letter-spacing: 2px;
+            letter-spacing: 2.5px;
             text-transform: uppercase;
-            color: #1a1a1a;
-            padding-top: 14px;
-            border-top: 1px solid #1a1a1a;
+            color: #2b1810;
+            padding-top: 16px;
+            border-top: 1px solid #6b4423;
         }
 
         .masthead .bottom-line .issue {
-            background: #0d4d3c;
-            color: #f4efe4;
-            padding: 4px 12px;
+            background: #2d5a3d;
+            color: #efe2c3;
+            padding: 5px 14px;
             letter-spacing: 3px;
+            font-weight: 700;
+            box-shadow: 1px 1px 0 rgba(43, 24, 16, 0.4);
         }
+
+        /* ============================================================
+           СЕТКА ГАЗЕТЫ
+           ============================================================ */
 
         .news-grid {
             column-count: 3;
-            column-gap: 34px;
-            column-rule: 1px solid #c9c0ad;
+            column-gap: 36px;
+            column-rule: 1px solid #a88b5d;
+            position: relative;
+            z-index: 1;
         }
 
         @media (max-width: 1000px) {
             .news-grid { column-count: 2; }
             .masthead h1 { font-size: 3.2rem; }
-            .newspaper { padding: 35px 30px 30px; }
+            .newspaper { padding: 40px 32px 30px; }
         }
         @media (max-width: 640px) {
             .news-grid { column-count: 1; }
             .masthead h1 { font-size: 2.2rem; }
-            .newspaper { padding: 25px 20px; }
-            .newspaper::before { display: none; }
+            .newspaper { padding: 28px 22px; }
+            .newspaper::before,
+            .newspaper::after { display: none; }
             .masthead .top-line,
             .masthead .bottom-line { flex-direction: column; gap: 6px; }
         }
 
+        /* ============================================================
+           КАРТОЧКА СТАТЬИ
+           ============================================================ */
+
         .article {
             break-inside: avoid;
-            margin-bottom: 26px;
-            padding-bottom: 22px;
-            border-bottom: 1px solid #d8cfb9;
+            margin-bottom: 28px;
+            padding-bottom: 24px;
+            border-bottom: 1px dashed #8b6f47;
+            animation: fadeIn 0.7s ease-out backwards;
         }
         .article:last-child { border-bottom: none; }
 
-        .article.lead h3 {
-            font-size: 1.55rem;
-            line-height: 1.2;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Ведущая статья — крупнее */
+        .article.lead h3 {
+            font-size: 1.6rem;
+            line-height: 1.22;
+        }
+
+        /* Рубрика */
         .article .category {
             display: inline-block;
             font-family: 'PT Sans', Arial, sans-serif;
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 700;
             letter-spacing: 2.5px;
             text-transform: uppercase;
-            color: #0d4d3c;
-            margin-bottom: 8px;
-            padding-bottom: 2px;
-            border-bottom: 1px solid #0d4d3c;
+            color: #2d5a3d;
+            margin-bottom: 10px;
+            padding: 2px 0 2px 0;
+            border-bottom: 1px solid #2d5a3d;
         }
+        .article .category::before { content: "❖ "; color: #8b6f47; }
 
+        /* Заголовок статьи */
         .article h3 {
-            font-family: 'Playfair Display', Georgia, serif;
+            font-family: 'Lora', Georgia, serif;
             font-weight: 700;
             font-size: 1.25rem;
-            line-height: 1.25;
+            line-height: 1.28;
             margin-bottom: 10px;
-            color: #1a1a1a;
+            color: #2b1810;
         }
 
         .article h3 a {
             color: inherit;
             text-decoration: none;
-            transition: color 0.15s;
+            transition: color 0.2s;
         }
-        .article h3 a:hover { color: #0d4d3c; }
+        .article h3 a:hover { color: #2d5a3d; }
 
+        /* Источник */
         .article .source {
             font-family: 'PT Sans', Arial, sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 1.5px;
+            font-size: 0.68rem;
+            letter-spacing: 1.8px;
             text-transform: uppercase;
-            color: #6b6256;
-            margin-bottom: 10px;
+            color: #6b4423;
+            margin-bottom: 12px;
+            font-style: italic;
         }
         .article .source::before { content: "— "; }
 
+        /* Текст */
         .article .summary {
             font-size: 0.95rem;
             text-align: justify;
             hyphens: auto;
-            color: #2a2a2a;
+            color: #3a2418;
         }
 
+        /* Буквица у ведущей статьи */
         .article.lead .summary::first-letter {
-            font-family: 'Playfair Display', serif;
-            font-weight: 900;
+            font-family: 'Yeseva One', serif;
             float: left;
-            font-size: 3.2rem;
+            font-size: 3.5rem;
             line-height: 0.85;
-            padding: 4px 8px 0 0;
-            color: #0d4d3c;
+            padding: 6px 10px 0 0;
+            color: #2d5a3d;
+            text-shadow: 1px 1px 0 rgba(139, 111, 71, 0.4);
         }
 
+        /* Пустой выпуск */
         .empty {
             text-align: center;
-            padding: 60px 20px;
-            font-style: italic;
-            color: #6b6256;
-            font-size: 1.1rem;
+            padding: 70px 20px;
+            font-family: 'Caveat', cursive;
+            font-size: 1.6rem;
+            color: #6b4423;
+        }
+        .empty::before {
+            content: "✦";
+            display: block;
+            font-size: 2rem;
+            margin-bottom: 16px;
+            color: #8b6f47;
         }
 
+        /* ============================================================
+           ПОДВАЛ
+           ============================================================ */
+
         .footer {
-            margin-top: 42px;
-            padding-top: 22px;
-            border-top: 3px double #1a1a1a;
+            margin-top: 46px;
+            padding-top: 24px;
+            border-top: 2px solid #2b1810;
             text-align: center;
             font-family: 'PT Sans', Arial, sans-serif;
             font-size: 0.72rem;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.8px;
             text-transform: uppercase;
-            color: #6b6256;
-            line-height: 1.9;
+            color: #6b4423;
+            line-height: 2;
+            position: relative;
+            z-index: 1;
         }
 
         .footer .ornament {
-            color: #0d4d3c;
+            color: #2d5a3d;
             font-size: 1.1rem;
-            letter-spacing: 8px;
-            margin-bottom: 8px;
+            letter-spacing: 10px;
+            margin-bottom: 10px;
+        }
+
+        .footer .wand {
+            color: #8b6f47;
+            font-size: 1rem;
         }
     </style>
 </head>
@@ -335,9 +441,9 @@ HTML_TEMPLATE = """
         {% endif %}
 
         <footer class="footer">
-            <div class="ornament">❦ ❦ ❦</div>
+            <div class="ornament">✦ ❦ ✦ ❦ ✦</div>
             <div>Ведомость для HR Ак Барс · Автоматический дайджест</div>
-            <div>Все права на оригинальные публикации принадлежат их авторам</div>
+            <div class="wand">Все права на оригинальные публикации принадлежат их авторам</div>
         </footer>
 
     </div>
@@ -350,7 +456,7 @@ HTML_TEMPLATE = """
 # 3. ЛОГИКА
 # ============================================================
 
-def clean_summary(text, max_length=420):
+def clean_summary(text, max_length=450):
     if not text:
         return "Читать полностью на сайте источника."
     clean = re.sub(r'<[^>]+>', '', text)
@@ -360,55 +466,76 @@ def clean_summary(text, max_length=420):
     return clean
 
 
-def is_hr_relevant(title, summary):
-    """Проверяет, относится ли новость к HR-тематике."""
-    text = (title + " " + summary).lower()
+def get_entry_date(entry):
+    for field in ("published_parsed", "updated_parsed", "created_parsed"):
+        parsed = entry.get(field)
+        if parsed:
+            try:
+                return datetime.datetime.fromtimestamp(time.mktime(parsed))
+            except (ValueError, OverflowError):
+                continue
+    return None
 
+
+def is_fresh(entry, days_back=DAYS_BACK):
+    published = get_entry_date(entry)
+    if published is None:
+        return False
+    cutoff = datetime.datetime.now() - datetime.timedelta(days=days_back)
+    return published >= cutoff
+
+
+def is_hr_relevant(title, summary):
+    text = (title + " " + summary).lower()
     for kw in HR_KEYWORDS_RU:
         if kw in text:
             return True
-
-    # Английские ключи ищем с границей слова, чтобы не ловить случайные совпадения
     for kw in HR_KEYWORDS_EN:
         if re.search(r'\b' + re.escape(kw), text):
             return True
-
     return False
 
 
 def fetch_news():
     all_articles = []
-    skipped = 0
+    skipped_old = 0
+    skipped_irrelevant = 0
 
     for feed_info in RSS_FEEDS:
         try:
             print(f"Читаю: {feed_info['name']}...")
             feed = feedparser.parse(feed_info['url'])
+            print(f"  → получено записей: {len(feed.entries)}")
 
-            for entry in feed.entries[:10]:
+            for entry in feed.entries[:15]:
                 title = entry.get('title', 'Без заголовка')
                 summary = clean_summary(entry.get('summary', ''))
 
-                # Пропускаем новости, не относящиеся к HR
-                if not is_hr_relevant(title, summary):
-                    skipped += 1
+                if not is_fresh(entry):
+                    skipped_old += 1
                     continue
 
+                if not is_hr_relevant(title, summary):
+                    skipped_irrelevant += 1
+                    continue
+
+                published = get_entry_date(entry)
                 all_articles.append({
                     'title': title,
                     'link': entry.get('link', '#'),
                     'summary': summary,
                     'source': feed_info['name'],
                     'category': feed_info['category'],
-                    'published': entry.get('published', ''),
+                    'published_dt': published or datetime.datetime.min,
                 })
 
         except Exception as e:
-            print(f"Ошибка при чтении {feed_info['name']}: {e}")
+            print(f"  ⚠ Ошибка при чтении {feed_info['name']}: {e}")
 
-    print(f"Отфильтровано нерелевантных новостей: {skipped}")
+    print(f"Пропущено старых новостей: {skipped_old}")
+    print(f"Пропущено нерелевантных: {skipped_irrelevant}")
 
-    all_articles.sort(key=lambda x: x.get('published', ''), reverse=True)
+    all_articles.sort(key=lambda x: x['published_dt'], reverse=True)
     return all_articles[:MAX_ARTICLES]
 
 
