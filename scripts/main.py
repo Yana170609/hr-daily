@@ -65,7 +65,7 @@ HR_KEYWORDS_EN = [
 ]
 
 # ============================================================
-# 2. HTML-ШАБЛОН (не меняется — оставляем как было)
+# 2. HTML-ШАБЛОН
 # ============================================================
 
 HTML_TEMPLATE = """
@@ -280,7 +280,7 @@ def is_hr_relevant(title, summary):
 
 
 def translate_text(text, source_lang='EN', target_lang='RU'):
-    """Перевод через DeepL API."""
+    """Перевод через DeepL API. Ключ передаётся в заголовке Authorization."""
     if not text:
         return text
 
@@ -290,13 +290,15 @@ def translate_text(text, source_lang='EN', target_lang='RU'):
         return text
 
     try:
-        # Бесплатный тариф DeepL использует домен api-free
         url = "https://api-free.deepl.com/v2/translate"
         response = requests.post(
             url,
-            data={
-                "auth_key": api_key,
-                "text": text,
+            headers={
+                "Authorization": f"DeepL-Auth-Key {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "text": [text],
                 "source_lang": source_lang,
                 "target_lang": target_lang,
             },
