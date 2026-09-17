@@ -14,11 +14,6 @@
     <style>
         /* ============================================================
            ПАЛИТРА (пергамент и чернила)
-           Пергамент светлый:  #efe2c3
-           Пергамент тёмный:   #d9c9a3
-           Чернила:            #2b1810 (тёмно-коричневый)
-           Акцент (АК БАРС):   #2d5a3d (тёмно-зелёный)
-           Золото:             #8b6f47
            ============================================================ */
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -63,7 +58,6 @@
             border: 1px solid #8b6f47;
         }
 
-        /* Внешняя рамка — двойная линия */
         .newspaper::before {
             content: "";
             position: absolute;
@@ -71,7 +65,6 @@
             border: 1px solid #6b4423;
             pointer-events: none;
         }
-        /* Внутренняя рамка — тонкая */
         .newspaper::after {
             content: "";
             position: absolute;
@@ -107,11 +100,9 @@
             border-bottom: 1px solid #6b4423;
         }
 
-        /* Орнаменты по бокам от верхней линии */
         .masthead .top-line span:first-child::before { content: "✦ "; }
         .masthead .top-line span:last-child::after  { content: " ✦"; }
 
-        /* Главный заголовок в декоративном шрифте */
         .masthead h1 {
             font-family: 'Yeseva One', Georgia, serif;
             font-weight: 400;
@@ -133,7 +124,6 @@
             margin: 0 6px;
         }
 
-        /* Подзаголовок — рукописный */
         .masthead .tagline {
             font-family: 'Caveat', cursive;
             font-size: 1.5rem;
@@ -216,13 +206,11 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Ведущая статья — крупнее */
         .article.lead h3 {
             font-size: 1.6rem;
             line-height: 1.22;
         }
 
-        /* Рубрика */
         .article .category {
             display: inline-block;
             font-family: 'PT Sans', Arial, sans-serif;
@@ -237,7 +225,6 @@
         }
         .article .category::before { content: "❖ "; color: #8b6f47; }
 
-        /* Заголовок статьи */
         .article h3 {
             font-family: 'Lora', Georgia, serif;
             font-weight: 700;
@@ -254,7 +241,6 @@
         }
         .article h3 a:hover { color: #2d5a3d; }
 
-        /* Источник */
         .article .source {
             font-family: 'PT Sans', Arial, sans-serif;
             font-size: 0.68rem;
@@ -266,7 +252,6 @@
         }
         .article .source::before { content: "— "; }
 
-        /* Текст */
         .article .summary {
             font-size: 0.95rem;
             text-align: justify;
@@ -274,7 +259,6 @@
             color: #3a2418;
         }
 
-        /* Буквица у ведущей статьи */
         .article.lead .summary::first-letter {
             font-family: 'Yeseva One', serif;
             float: left;
@@ -285,7 +269,6 @@
             text-shadow: 1px 1px 0 rgba(139, 111, 71, 0.4);
         }
 
-        /* Пустой выпуск */
         .empty {
             text-align: center;
             padding: 70px 20px;
@@ -300,10 +283,6 @@
             margin-bottom: 16px;
             color: #8b6f47;
         }
-
-        /* ============================================================
-           ПОДВАЛ
-           ============================================================ */
 
         .footer {
             margin-top: 46px;
@@ -349,7 +328,7 @@
             <div class="bottom-line">
                 <span>17 сентября 2026</span>
                 <span class="issue">АК БАРС</span>
-                <span>Материалов в номере: 2</span>
+                <span>Материалов в номере: 15</span>
             </div>
         </header>
 
@@ -357,6 +336,76 @@
         <div class="news-grid">
             
             <article class="article lead">
+                <span class="category">Мир</span>
+                <h3><a href="https://www.hrdive.com/news/young-workers-want-to-switch-jobs-soon-for-better-pay-benefits/830538/" target="_blank" rel="noopener">More than half of young workers want to switch jobs soon for better pay, benefits</a></h3>
+                <div class="source">HR Dive</div>
+                <p class="summary">The share of Generation Z employees looking for greener pastures is on the rise, Robert Half found.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://www.hrdive.com/news/veterans-retention-2026/830566/" target="_blank" rel="noopener">Veterans caught in the middle on anti-DEI efforts, research says</a></h3>
+                <div class="source">HR Dive</div>
+                <p class="summary">The veteran cause typically attracts bipartisan support, but President Donald Trump&rsquo;s anti-DEI agenda may have hurt veteran well-being overall, Rand researchers determined.&nbsp;</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://www.hrdive.com/news/chipotle-expands-apprentice-program-leadership/830510/" target="_blank" rel="noopener">Chipotle to place apprentice managers in all company-owned locations</a></h3>
+                <div class="source">HR Dive</div>
+                <p class="summary">These high-performing employees are working toward a general manager role and will be a key part of staffing newly opened restaurants, the company said.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://www.hrdive.com/news/adjusting-personality-to-fit-in-at-work-is-a-key-skill-hiring-managers/830527/" target="_blank" rel="noopener">Adjusting personality to fit in at work is a key skill, hiring managers say</a></h3>
+                <div class="source">HR Dive</div>
+                <p class="summary">Despite stereotypes, the most adaptable workers were Generation Z, with 80% saying they changed themselves for the workplace.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://www.hrdive.com/news/ai-absent-from-most-organizations-ethics-codes/830532/" target="_blank" rel="noopener">AI completely absent from most organizations’ ethics codes, survey finds</a></h3>
+                <div class="source">HR Dive</div>
+                <p class="summary">Additionally, fewer employees say they cite their codes of conduct or use them as a resource, according to LRN, even as workplace misconduct reports increase.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://www.hrdive.com/news/alleged-dei-motivated-hirings-promotions-cost-accenture-25m-in-doj-settlement/830448/" target="_blank" rel="noopener">Alleged DEI-motivated hirings and promotions cost Accenture $25M in DOJ settlement</a></h3>
+                <div class="source">HR Dive</div>
+                <p class="summary">The U.S. Department of Justice said certain candidates were highlighted to leadership and directed into a &ldquo;pipeline&rdquo; due to their race and sex characteristics.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://www.hrdive.com/news/safety-risk-insufficient-to-show-religious-accommodation-undue-hardship/830451/" target="_blank" rel="noopener">Safety risk insufficient to show religious accommodation posed undue hardship, court rules</a></h3>
+                <div class="source">HR Dive</div>
+                <p class="summary">The case adds to the 9th Circuit&rsquo;s analysis of COVID-19 vaccine mandates and religious accommodation, a topic on which the court has sometimes sided with employers.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://www.hrdive.com/news/judge-says-disability-bias-lawsuit-against-shrm-must-proceed/830439/" target="_blank" rel="noopener">Judge says disability bias lawsuit against SHRM must proceed</a></h3>
+                <div class="source">HR Dive</div>
+                <p class="summary">A candidate previously alleged that the HR organization rescinded a job offer after she requested to have her trained service dog accompany her to the office as a reasonable accommodation.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://www.hrdive.com/news/is-ai-killing-worker-cognition/830303/" target="_blank" rel="noopener">Is AI killing worker cognition?</a></h3>
+                <div class="source">HR Dive</div>
+                <p class="summary">Employees have reported in various surveys that AI tool use has worsened their critical thinking skills, affected their judgment and even made them less intelligent.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Мир</span>
+                <h3><a href="https://www.hrdive.com/news/ai-hasnt-significantly-improved-the-speed-of-hiring/830316/" target="_blank" rel="noopener">AI hasn’t significantly improved the speed of hiring, report finds</a></h3>
+                <div class="source">HR Dive</div>
+                <p class="summary">A quarter of employers reported a slowdown in time-to-hire in the fourth quarter compared to a year ago.</p>
+            </article>
+            
+            <article class="article ">
                 <span class="category">Аналитика</span>
                 <h3><a href="https://joshbersin.com/2026/09/hr-intelligence-goes-enterprise-the-galileo-jupiter-release/" target="_blank" rel="noopener">HR Intelligence Goes Enterprise: The Galileo Jupiter Release</a></h3>
                 <div class="source">Josh Bersin</div>
@@ -368,6 +417,27 @@
                 <h3><a href="https://www.cossa.ru/news/350938/" target="_blank" rel="noopener">Как запоминают новости жители России и&nbsp;работники медиаиндустрии</a></h3>
                 <div class="source">Cossa</div>
                 <p class="summary">Исследование «Мастерской новых медиа» и&nbsp;АНО «Диалог Регионы».</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Россия</span>
+                <h3><a href="https://www.e-xecutive.ru/management/market/2000706-vstrecha-dlya-rukovoditelei-sovremennyi-marketing-i-vyzovy-biznesa-2026?utm_campaign=00_atom_atom&utm_medium=atom&utm_source=rss" target="_blank" rel="noopener">Встреча для руководителей «Современный маркетинг и вызовы бизнеса 2026»</a></h3>
+                <div class="source">E-xecutive</div>
+                <p class="summary">Презентация линейки образовательных программ для специалистов по маркетингу от ВШБ НИУ ВШЭ: дискуссия, мастер-классы, нетворкинг.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Технологии</span>
+                <h3><a href="https://www.cossa.ru/news/350866/" target="_blank" rel="noopener">Ecommerce: адаптация к&nbsp;рациональному потреблению, CPA снижается на&nbsp;4,9% при стабильной цене клика</a></h3>
+                <div class="source">Cossa</div>
+                <p class="summary">Исследование E-Promo.</p>
+            </article>
+            
+            <article class="article ">
+                <span class="category">Технологии</span>
+                <h3><a href="https://www.cossa.ru/news/350815/" target="_blank" rel="noopener">Станислав Кондрашов: при марже в 4% агентство в России продаёт не часы, а ответственность</a></h3>
+                <div class="source">Cossa</div>
+                <p class="summary">Маржинальность рекламных агентств упала с&nbsp;30–50% до&nbsp;4%, а&nbsp;зарплаты в&nbsp;отрасли выросли на&nbsp;21% за&nbsp;год. Станислав Кондрашов объясняет, почему выход из&nbsp;этой вилки не&nbsp;в&nbsp;оптимизации расходов.</p>
             </article>
             
         </div>
