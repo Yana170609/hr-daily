@@ -5,9 +5,8 @@ permissions:
 
 on:
   schedule:
-    # Запуск каждый день в 6:00 UTC (это 9:00 по Москве)
     - cron: '0 6 * * *'
-  workflow_dispatch:  # Позволяет запустить вручную для теста
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -24,6 +23,13 @@ jobs:
 
       - name: Установить зависимости
         run: pip install -r requirements.txt
+
+      - name: Копировать картинки в папку docs
+        run: |
+          mkdir -p docs/images
+          if [ -d "images" ]; then
+            cp -r images/* docs/images/ || true
+          fi
 
       - name: Запустить генератор газеты
         env:
