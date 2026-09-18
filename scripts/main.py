@@ -2,12 +2,13 @@
 """
 Ведомость для HR Ак Барс — ежедневная онлайн-газета
 Стиль: «Ежедневный пророк» (Гарри Поттер).
-Перевод через DeepL API.
+Перевод через DeepL. Рандомные картинки. Избранное в браузере.
 """
 
 import os
 import re
 import time
+import random
 import datetime
 import requests
 import feedparser
@@ -39,6 +40,12 @@ MAX_ARTICLES = 20
 OUTPUT_DIR = "docs"
 OUTPUT_FILE = "index.html"
 DAYS_BACK = 7
+
+# --- Картинки ---
+IMAGES_SRC_DIR = "images"        # откуда брать (в корне репозитория)
+IMAGES_DEST_DIR = "docs/images"  # куда положить (рядом с index.html)
+IMAGES_IN_ISSUE_MIN = 2          # минимум картинок в номере
+IMAGES_IN_ISSUE_MAX = 4          # максимум картинок в номере
 
 HR_KEYWORDS_RU = [
     "hr", "эйч-ар", "кадр", "персонал", "сотрудник", "работник",
@@ -155,7 +162,7 @@ HTML_TEMPLATE = """
             .newspaper::before, .newspaper::after { display: none; }
             .masthead .top-line, .masthead .bottom-line { flex-direction: column; gap: 6px; }
         }
-        .article { break-inside: avoid; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px dashed #8b6f47; animation: fadeIn 0.7s ease-out backwards; }
+        .article { break-inside: avoid; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px dashed #8b6f47; animation: fadeIn 0.7s ease-out backwards; position: relative; }
         .article:last-child { border-bottom: none; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
         .article.lead h3 { font-size: 1.6rem; line-height: 1.22; }
@@ -166,7 +173,7 @@ HTML_TEMPLATE = """
             margin-bottom: 10px; padding: 2px 0; border-bottom: 1px solid #2d5a3d;
         }
         .article .category::before { content: "❖ "; color: #8b6f47; }
-        .article h3 { font-family: 'Lora', Georgia, serif; font-weight: 700; font-size: 1.25rem; line-height: 1.28; margin-bottom: 10px; color: #2b1810; }
+        .article h3 { font-family: 'Lora', Georgia, serif; font-weight: 700; font-size: 1.25rem; line-height: 1.28; margin-bottom: 10px; color: #2b1810; padding-right: 30px; }
         .article h3 a { color: inherit; text-decoration: none; transition: color 0.2s; }
         .article h3 a:hover { color: #2d5a3d; }
         .article .source {
@@ -181,6 +188,87 @@ HTML_TEMPLATE = """
             line-height: 0.85; padding: 6px 10px 0 0; color: #2d5a3d;
             text-shadow: 1px 1px 0 rgba(139, 111, 71, 0.4);
         }
+        /* Кнопка "В избранное" */
+        .fav-btn {
+            position: absolute; top: 0; right: 0;
+            background: transparent; border: none; cursor: pointer;
+            font-size: 1.4rem; color: #8b6f47;
+            padding: 2px 6px; transition: transform 0.15s, color 0.15s;
+            line-height: 1; z-index: 2;
+        }
+        .fav-btn:hover { transform: scale(1.25); color: #2d5a3d; }
+        .fav-btn.active { color: #c9a227; }
+        /* Картинка между статьями */
+        .inline-image {
+            break-inside: avoid;
+            margin: 0 0 28px 0;
+            padding: 8px;
+            background: #e0d1ad;
+            border: 1px solid #8b6f47;
+            box-shadow: 3px 3px 0 rgba(43, 24, 16, 0.15);
+            position: relative;
+        }
+        .inline-image img {
+            display: block; width: 100%; height: auto;
+            filter: sepia(0.35) contrast(0.95) brightness(0.98);
+            border: 1px solid #6b4423;
+        }
+        .inline-image::after {
+            content: "✦ ✦ ✦"; display: block;
+            text-align: center; margin-top: 6px;
+            color: #8b6f47; font-size: 0.7rem; letter-spacing: 4px;
+        }
+        /* Блок "Избранное" */
+        .favorites-section {
+            margin-top: 50px; padding-top: 30px;
+            border-top: 3px double #2b1810;
+            position: relative; z-index: 1;
+        }
+        .favorites-section h2 {
+            font-family: 'Yeseva One', serif; font-weight: 400;
+            font-size: 2rem; color: #2d5a3d;
+            text-align: center; margin-bottom: 24px;
+            letter-spacing: 1px;
+        }
+        .favorites-section h2::before, .favorites-section h2::after {
+            content: " ✦ "; color: #8b6f47; font-size: 1rem;
+        }
+        .favorites-empty {
+            text-align: center; font-family: 'Caveat', cursive;
+            font-size: 1.3rem; color: #6b4423; padding: 20px;
+        }
+        .favorites-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+        }
+        .fav-item {
+            background: #e8d9b5;
+            border: 1px solid #8b6f47;
+            padding: 16px 18px;
+            position: relative;
+            box-shadow: 2px 2px 0 rgba(43, 24, 16, 0.12);
+        }
+        .fav-item h4 {
+            font-family: 'Lora', serif; font-weight: 700;
+            font-size: 1rem; line-height: 1.3;
+            margin-bottom: 8px; padding-right: 24px;
+        }
+        .fav-item h4 a { color: #2b1810; text-decoration: none; }
+        .fav-item h4 a:hover { color: #2d5a3d; }
+        .fav-item .fav-source {
+            font-family: 'PT Sans', sans-serif; font-size: 0.65rem;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: #6b4423; font-style: italic;
+        }
+        .fav-item .fav-remove {
+            position: absolute; top: 8px; right: 10px;
+            background: transparent; border: none; cursor: pointer;
+            color: #8b6f47; font-size: 1.1rem;
+            padding: 2px 6px; line-height: 1;
+            transition: color 0.15s, transform 0.15s;
+        }
+        .fav-item .fav-remove:hover { color: #a02929; transform: scale(1.2); }
         .empty { text-align: center; padding: 70px 20px; font-family: 'Caveat', cursive; font-size: 1.6rem; color: #6b4423; }
         .empty::before { content: "✦"; display: block; font-size: 2rem; margin-bottom: 16px; color: #8b6f47; }
         .footer {
@@ -207,29 +295,150 @@ HTML_TEMPLATE = """
             <div class="bottom-line">
                 <span>{{ date }}</span>
                 <span class="issue">АК БАРС</span>
-                <span>Материалов в номере: {{ articles|length }}</span>
+                <span>Материалов в номере: {{ article_count }}</span>
             </div>
         </header>
-        {% if articles %}
+
+        {% if items %}
         <div class="news-grid">
-            {% for article in articles %}
-            <article class="article {% if loop.first %}lead{% endif %}">
-                <span class="category">{{ article.category }}</span>
-                <h3><a href="{{ article.link }}" target="_blank" rel="noopener">{{ article.title }}</a></h3>
-                <div class="source">{{ article.source }}</div>
-                <p class="summary">{{ article.summary }}</p>
-            </article>
+            {% for item in items %}
+                {% if item.type == 'article' %}
+                <article class="article {% if item.is_lead %}lead{% endif %}"
+                         data-id="{{ item.article.link }}"
+                         data-title="{{ item.article.title }}"
+                         data-source="{{ item.article.source }}"
+                         data-link="{{ item.article.link }}">
+                    <button class="fav-btn" type="button" title="Добавить в избранное" aria-label="Добавить в избранное">☆</button>
+                    <span class="category">{{ item.article.category }}</span>
+                    <h3><a href="{{ item.article.link }}" target="_blank" rel="noopener">{{ item.article.title }}</a></h3>
+                    <div class="source">{{ item.article.source }}</div>
+                    <p class="summary">{{ item.article.summary }}</p>
+                </article>
+                {% elif item.type == 'image' %}
+                <figure class="inline-image">
+                    <img src="{{ item.src }}" alt="Иллюстрация" loading="lazy">
+                </figure>
+                {% endif %}
             {% endfor %}
         </div>
         {% else %}
         <div class="empty">Сегодня свежих HR-новостей не нашлось.<br>Газета обновится завтра.</div>
         {% endif %}
+
+        <section class="favorites-section" id="favorites-section">
+            <h2>Моё избранное</h2>
+            <div class="favorites-empty" id="favorites-empty">
+                Пока ничего не отложено. Нажмите ☆ у статьи, чтобы сохранить её здесь.
+            </div>
+            <div class="favorites-list" id="favorites-list"></div>
+        </section>
+
         <footer class="footer">
             <div class="ornament">✦ ❦ ✦ ❦ ✦</div>
             <div>Ведомость для HR Ак Барс · Автоматический дайджест</div>
             <div class="wand">Все права на оригинальные публикации принадлежат их авторам</div>
         </footer>
     </div>
+
+<script>
+(function() {
+    var STORAGE_KEY = 'hr-favorites-v1';
+
+    function getFavs() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        } catch (e) { return []; }
+    }
+    function saveFavs(favs) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(favs)); } catch (e) {}
+    }
+    function escapeHtml(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderFavorites() {
+        var favs = getFavs();
+        var list = document.getElementById('favorites-list');
+        var empty = document.getElementById('favorites-empty');
+        if (!list || !empty) return;
+
+        if (favs.length === 0) {
+            empty.style.display = 'block';
+            list.innerHTML = '';
+            return;
+        }
+        empty.style.display = 'none';
+        list.innerHTML = favs.map(function(f) {
+            return '<div class="fav-item">' +
+                '<button class="fav-remove" type="button" data-id="' + encodeURIComponent(f.id) + '" title="Убрать из избранного">✕</button>' +
+                '<h4><a href="' + f.link + '" target="_blank" rel="noopener">' + escapeHtml(f.title) + '</a></h4>' +
+                '<div class="fav-source">— ' + escapeHtml(f.source) + '</div>' +
+                '</div>';
+        }).join('');
+    }
+
+    function updateButtons() {
+        var favs = getFavs();
+        var ids = favs.map(function(f) { return f.id; });
+        document.querySelectorAll('.fav-btn').forEach(function(btn) {
+            var article = btn.closest('.article');
+            if (!article) return;
+            var id = article.getAttribute('data-id');
+            if (ids.indexOf(id) !== -1) {
+                btn.classList.add('active');
+                btn.textContent = '★';
+                btn.title = 'Убрать из избранного';
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = '☆';
+                btn.title = 'Добавить в избранное';
+            }
+        });
+    }
+
+    function toggleFavorite(article) {
+        var id = article.getAttribute('data-id');
+        var title = article.getAttribute('data-title');
+        var source = article.getAttribute('data-source');
+        var link = article.getAttribute('data-link');
+        var favs = getFavs();
+        var idx = -1;
+        for (var i = 0; i < favs.length; i++) {
+            if (favs[i].id === id) { idx = i; break; }
+        }
+        if (idx >= 0) {
+            favs.splice(idx, 1);
+        } else {
+            favs.unshift({ id: id, title: title, source: source, link: link });
+        }
+        saveFavs(favs);
+        renderFavorites();
+        updateButtons();
+    }
+
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.fav-btn');
+        if (btn) {
+            var article = btn.closest('.article');
+            if (article) { toggleFavorite(article); }
+            return;
+        }
+        var remove = e.target.closest('.fav-remove');
+        if (remove) {
+            var id = decodeURIComponent(remove.getAttribute('data-id'));
+            var favs = getFavs().filter(function(f) { return f.id !== id; });
+            saveFavs(favs);
+            renderFavorites();
+            updateButtons();
+        }
+    });
+
+    renderFavorites();
+    updateButtons();
+})();
+</script>
 </body>
 </html>
 """
@@ -283,12 +492,10 @@ def translate_text(text, source_lang='EN', target_lang='RU'):
     """Перевод через DeepL API. Ключ передаётся в заголовке Authorization."""
     if not text:
         return text
-
     api_key = os.getenv("DEEPL_API_KEY")
     if not api_key:
         print("  ⚠ DEEPL_API_KEY не задан — пропускаю перевод")
         return text
-
     try:
         url = "https://api-free.deepl.com/v2/translate"
         response = requests.post(
@@ -304,7 +511,6 @@ def translate_text(text, source_lang='EN', target_lang='RU'):
             },
             timeout=20,
         )
-
         if response.status_code == 200:
             result = response.json()
             translated = result["translations"][0]["text"]
@@ -313,7 +519,6 @@ def translate_text(text, source_lang='EN', target_lang='RU'):
         else:
             print(f"  ⚠ DeepL ответил: {response.status_code} — {response.text[:200]}")
             return text
-
     except Exception as e:
         print(f"  ⚠ Ошибка DeepL: {e}")
         return text
@@ -323,31 +528,24 @@ def fetch_news():
     all_articles = []
     skipped_old = 0
     skipped_irrelevant = 0
-
     for feed_info in RSS_FEEDS:
         try:
             print(f"Читаю: {feed_info['name']}...")
             feed = feedparser.parse(feed_info['url'])
             print(f"  → получено записей: {len(feed.entries)}")
-
             for entry in feed.entries[:20]:
                 title = entry.get('title', 'Без заголовка')
                 summary = clean_summary(entry.get('summary', ''))
-
                 if not is_fresh(entry):
                     skipped_old += 1
                     continue
-
                 if not is_hr_relevant(title, summary):
                     skipped_irrelevant += 1
                     continue
-
-                # Перевод для англоязычных источников
                 if feed_info.get('lang') == 'en':
                     print(f"  → Перевожу: {title[:60]}...")
                     title = translate_text(title)
                     summary = translate_text(summary)
-
                 published = get_entry_date(entry)
                 all_articles.append({
                     'title': title,
@@ -357,25 +555,81 @@ def fetch_news():
                     'category': feed_info['category'],
                     'published_dt': published or datetime.datetime.min,
                 })
-
         except Exception as e:
             print(f"  ⚠ Ошибка при чтении {feed_info['name']}: {e}")
-
     print(f"Пропущено старых: {skipped_old}")
     print(f"Пропущено нерелевантных: {skipped_irrelevant}")
-
     all_articles.sort(key=lambda x: x['published_dt'], reverse=True)
     return all_articles[:MAX_ARTICLES]
 
 
-def generate_newspaper(articles):
+def get_random_images():
+    """Возвращает список файлов-картинок из IMAGES_SRC_DIR (папка в корне)."""
+    if not os.path.isdir(IMAGES_SRC_DIR):
+        print(f"  ℹ Папка с картинками не найдена: {IMAGES_SRC_DIR}")
+        return []
+    exts = ('.jpg', '.jpeg', '.png', '.gif', '.webp')
+    images = [f for f in os.listdir(IMAGES_SRC_DIR)
+              if f.lower().endswith(exts)]
+    return images
+
+
+def build_issue_items(articles, images):
+    """Собирает список: статьи + случайные картинки между ними."""
+    if not articles:
+        return []
+
+    if not images or len(articles) < 3:
+        chosen_images = []
+    else:
+        max_possible = min(len(images), IMAGES_IN_ISSUE_MAX, len(articles) - 1)
+        min_possible = min(IMAGES_IN_ISSUE_MIN, max_possible)
+        if max_possible >= min_possible and max_possible > 0:
+            num = random.randint(min_possible, max_possible)
+            chosen_images = random.sample(images, num)
+        else:
+            chosen_images = []
+
+    if chosen_images:
+        positions = sorted(random.sample(range(1, len(articles)), len(chosen_images)))
+    else:
+        positions = []
+
+    items = []
+    img_iter = iter(chosen_images)
+    for i, article in enumerate(articles):
+        items.append({
+            'type': 'article',
+            'article': article,
+            'is_lead': (i == 0),
+        })
+        if i in positions:
+            try:
+                img = next(img_iter)
+                items.append({'type': 'image', 'src': f'images/{img}'})
+            except StopIteration:
+                pass
+    return items
+
+
+def generate_newspaper(articles, images):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+    items = build_issue_items(articles, images)
+    image_count = sum(1 for i in items if i['type'] == 'image')
+    print(f"Вставлено картинок в номер: {image_count}")
+
     template = Template(HTML_TEMPLATE)
     today = datetime.date.today()
     months = {1:"января",2:"февраля",3:"марта",4:"апреля",5:"мая",6:"июня",7:"июля",8:"августа",9:"сентября",10:"октября",11:"ноября",12:"декабря"}
     date_str = f"{today.day} {months[today.month]} {today.year}"
     issue_number = today.timetuple().tm_yday
-    html = template.render(articles=articles, date=date_str, issue_number=issue_number)
+
+    html = template.render(
+        items=items,
+        article_count=len(articles),
+        date=date_str,
+        issue_number=issue_number,
+    )
     output_path = os.path.join(OUTPUT_DIR, OUTPUT_FILE)
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
@@ -386,7 +640,9 @@ def main():
     print("=== Ведомость для HR Ак Барс ===")
     articles = fetch_news()
     print(f"Собрано HR-новостей: {len(articles)}")
-    generate_newspaper(articles)
+    images = get_random_images()
+    print(f"Найдено картинок в пуле: {len(images)}")
+    generate_newspaper(articles, images)
     print("Готово!")
 
 
